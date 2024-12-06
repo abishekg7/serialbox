@@ -238,8 +238,8 @@ def compare_fields(serializers, field, savepoint, dim_bounds):
         slices += [dim_bounds[i]]
 
     # Get a view of a field incorporating the user defined slices
-    field_view_1 = field_1[slices]
-    field_view_2 = field_2[slices]
+    field_view_1 = field_1
+    field_view_2 = field_2
     assert field_view_1.size == field_view_2.size
 
     errors = []
@@ -486,9 +486,10 @@ def main(arguments=None):
     for dim in ["i", "j", "k", "l"]:
         if getattr(args, dim):
             bound = getattr(args, dim).split(":")
-            dim_bounds += [slice(bound) if len(bound) == 1 else slice(bound[0], bound[1])]
+            #dim_bounds += [slice(bound) if len(bound) == 1 else slice(bound[0], bound[1])]
+            dim_bounds += [None]
         else:
-            dim_bounds += [slice(None)]
+            dim_bounds += [None]
 
     # Open archives and create read-only serializers
     serializer_1, field_1 = make_serializer_and_extract_field(path_1)
