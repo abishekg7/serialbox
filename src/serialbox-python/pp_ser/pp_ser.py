@@ -110,7 +110,10 @@ class PpSer:
             'spinfo':           'fs_add_savepoint_metainfo',
             'fieldinfo':        'fs_add_field_metainfo',
             'on':               'fs_enable_serialization',
-            'off':              'fs_disable_serialization'
+            'off':              'fs_disable_serialization',
+            'compare':           'compare',
+            'mpas_set_serializer': 'mpas_set_serializer',
+            'mpas_set_savepoint': 'mpas_set_savepoint',
         }
 
         # language definition (also public)
@@ -128,6 +131,7 @@ class PpSer:
             'registertracers': ['REGISTERTRACERS'],
             'zero':            ['ZERO', 'ZER'],
             'savepoint':       ['SAVEPOINT', 'SAV'],
+            'compare':         ['COMPARE', 'CMP'],
             'tracer':          ['TRACER', 'TRA'],
             'on':              ['ON'],
             'off':             ['OFF']
@@ -420,7 +424,10 @@ class PpSer:
 
     # ZERO directive
     def __ser_zero(self, args):
+        
+        print(args)
         (dirs, keys, values, if_statement) = self.__ser_arg_parse(args)
+        print(keys)
         if len(keys) > 0:
             self.__exit_error(directive=args[0],
                               msg='Must specify a list of fields')
@@ -471,6 +478,44 @@ class PpSer:
             l += 'ENDIF\n'
 
         self.__line = l
+
+
+    # SAVEPOINT directive
+    def __ser_compare(self, args):
+        print(args)
+        (vars, keys, values, if_statement) = self.__ser_arg_parse(args)
+        print(keys)
+        print(vars)
+        # extract save point name
+        if len(vars) != 1:
+            self.__exit_error(directive=args[0],
+                              msg='Must specify a name and a list of key=value pairs')
+        var = vars[0]
+
+        # generate serialization code
+        l = '! file: ' + self.infile + ' lineno: #' + str(self.__linenum) + '\n'
+        tab = ''
+
+        if if_statement:
+            l += 'IF (' + if_statement + ') THEN\n'
+            tab = '  '
+
+        l += tab + 'call ' + self.methods['mpas_set_serializer']+ '(ppser_serializer_ref)\n'
+        l += tab + 'call ' + self.methods['mpas_set_savepoint']+ '(ppser_savepoint)\n'
+        
+        
+        l += tab + 'call ' + self.methods['compare'] + '("' + var + '",'+var
+        for k, v in zip(keys, values):
+            l += ', ' + k + '=' + v
+        l += ')\n'
+
+        if if_statement:
+            l += 'ENDIF\n'
+
+        self.__line = l
+
+
+
 
     # MODE directive
     def __ser_mode(self, args):
@@ -759,6 +804,8 @@ class PpSer:
                     self.__ser_off(args)
                 elif args[0].upper() in self.language['mode']:
                     self.__ser_mode(args)
+                elif args[0].upper() in self.language['compare']:
+                    self.__ser_compare(args)    
                 else:
                     self.__exit_error(directive=args[0],
                                       msg='Unknown directive encountered')
