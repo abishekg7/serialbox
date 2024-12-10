@@ -111,7 +111,7 @@ class PpSer:
             'fieldinfo':        'fs_add_field_metainfo',
             'on':               'fs_enable_serialization',
             'off':              'fs_disable_serialization',
-            'compare':           'mpas_compare',
+            'compare':           'compare',
             'mpas_set_serializer': 'mpas_set_serializer',
             'mpas_set_savepoint': 'mpas_set_savepoint',
         }
